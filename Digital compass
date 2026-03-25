@@ -1,0 +1,60 @@
+Python
+import smbus2
+import math
+import time
+
+# HMC5883L Registers
+ADDRESS = 0x1E
+bus = smbus2.SMBus(1)
+
+# Initialize sensor
+bus.write_byte_data(ADDRESS, 0x00, 0x70)  # Configuration Register A
+bus.write_byte_data(ADDRESS, 0x01, 0xA0)  # Configuration Register B
+bus.write_byte_data(ADDRESS, 0x02, 0x00)  # Mode Register
+
+def read_raw_data(addr):
+    high = bus.read_byte_data(ADDRESS, addr)
+    low = bus.read_byte_data(ADDRESS, addr + 1)
+    value = (high << 8) | low
+
+    if value > 32768:
+        value = value - 65536
+    return value
+
+while True:
+    # Read magnetometer data
+    x = read_raw_data(0x03)
+    z = read_raw_data(0x05)
+    y = read_raw_data(0x07)
+
+    # Calculate heading
+    heading = math.atan2(y, x)
+
+    # Convert radians to degrees
+    heading_deg = math.degrees(heading)
+
+    # Normalize to 0–360
+    if heading_deg < 0:
+        heading_deg += 360
+
+    # Determine direction
+    if 337.5 <= heading_deg or heading_deg < 22.5:
+        direction = "North"
+    elif 22.5 <= heading_deg < 67.5:
+        direction = "North-East"
+    elif 67.5 <= heading_deg < 112.5:
+        direction = "East"
+    elif 112.5 <= heading_deg < 157.5:
+        direction = "South-East"
+    elif 157.5 <= heading_deg < 202.5:
+        direction = "South"
+    elif 202.5 <= heading_deg < 247.5:
+        direction = "South-West"
+    elif 247.5 <= heading_deg < 292.5:
+        direction = "West"
+    else:
+        direction = "North-West"
+
+    print(f"Heading: {heading_deg:.2f}° -> {direction}")
+
+    time.sleep(1)
