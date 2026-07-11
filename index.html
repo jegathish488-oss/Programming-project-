@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Resume Analyzer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Smart Resume Analyzer & Job Matcher</h1>
+            <p>Upload your resume in PDF format to discover matching job roles.</p>
+        </header>
+
+        <main>
+            <section class="upload-section">
+                <form action="/analyze" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="resume" accept=".pdf" required id="file-input">
+                    <label for="file-input" class="custom-submit">Choose PDF Resume</label>
+                    <button type="submit" class="btn-submit">Analyze Resume</button>
+                </form>
+            </section>
+
+            {% if extracted_skills %}
+            <hr>
+            <section class="results-section">
+                <h2>Analysis Results</h2>
+                
+                <div class="result-box">
+                    <h3>Detected Skills:</h3>
+                    <div class="tags">
+                        {% for skill in extracted_skills %}
+                            <span class="tag">{{ skill }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="result-box">
+                    <h3>Recommended Job Profiles:</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Job Role</th>
+                                <th>Match Score</th>
+                                <th>Key Required Skills</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in recommendations %}
+                            <tr>
+                                <td><strong>{{ job.role }}</strong></td>
+                                <td class="score">{{ job.score }}%</td>
+                                <td>{{ job.matched_skills | join(', ') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>
